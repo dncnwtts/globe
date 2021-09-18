@@ -21,6 +21,10 @@ cmap = col.ListedColormap(np.loadtxt('planck_cmap_logscale.dat')
 mpl.cm.register_cmap(name='planck_log', cmap=cmap)
 
 
+
+import my_projections
+
+
 # The globe will be 13 inches in diameter, so roughly that will be the width,
 # and the height will be 6.5 inches. dpi of 300 is probably fair.
 fig = plt.figure(figsize=(13, 6.5))
@@ -50,8 +54,12 @@ hp.graticule(coord='E')
 #plt.show()
 
 
-#projview(p143, coord=["G"], projection_type="cart", min=-3.5e-4, max=3.5e-4,
-#    cmap='RdBu_r')
+projview(scale(p143), coord=["G"], projection_type="cart", min=0, max=2, 
+    cmap='planck_log', xsize=8000)
+
+
+projview(scale(p143), coord=["G"], projection_type="sinusoidal", min=0, max=2, 
+    cmap='planck_log', xsize=8000)
 
 plt.savefig('test.png', bbox_inches='tight', dpi=300)
 plt.show()
