@@ -209,8 +209,8 @@ class EquirectangularAxes(GeoAxes):
         return Rectangle((0, 0), 1, 1)
 
     def _gen_axes_spines(self):
-        x = np.array([0,1,1,0,0])
-        y = np.array([0,0,1,1,0])
+        x = np.array([-0.1,1.1,1.1,-0.1,-0.1])
+        y = np.array([-0.1,-0.1,1.1,1.1,-0.1])
         polygon = Polygon(np.array([x,y]).T)
 
         path = polygon.get_path()
@@ -339,8 +339,8 @@ class SinusoidalAxes(GeoAxes):
         return Polygon(np.array([x,y]).T)
 
     def _gen_axes_spines(self):
-        x = np.array([0,1,1,0,0])
-        y = np.array([0,0,1,1,0])
+        x = np.array([-0.1,1.1,1.1,-0.1,-0.1])
+        y = np.array([-0.1,-0.1,1.1,1.1,-0.1])
         polygon = Polygon(np.array([x,y]).T)
 
         path = polygon.get_path()
@@ -502,8 +502,8 @@ class PolyconicAxes(GeoAxes):
         return Polygon(np.array([x,y]).T)
 
     def _gen_axes_spines(self):
-        x = np.array([0,1,1,0,0])
-        y = np.array([0,0,1,1,0])
+        x = np.array([-0.1,1.1,1.1,-0.1,-0.1])
+        y = np.array([-0.1,-0.1,1.1,1.1,-0.1])
         polygon = Polygon(np.array([x,y]).T)
 
         path = polygon.get_path()
@@ -675,8 +675,8 @@ class CassiniAxes(GeoAxes):
         #spine = mspines.Spine(axes=self, spine_type='circle', path=path)
         #spine.set_transform(self.transAxes)
         #return {'geo': spine}
-        x = np.array([0,1,1,0,0])
-        y = np.array([0,0,1,1,0])
+        x = np.array([-0.1,1.1,1.1,-0.1,-0.1])
+        y = np.array([-0.1,-0.1,1.1,1.1,-0.1])
         polygon = Polygon(np.array([x,y]).T)
 
         path = polygon.get_path()

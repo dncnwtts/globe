@@ -27,16 +27,10 @@ import my_projections
 
 # The globe will be 13 inches in diameter, so roughly that will be the width,
 # and the height will be 6.5 inches. dpi of 300 is probably fair.
-fig = plt.figure(figsize=(13, 6.5))
 
 p143 = hp.read_map('/mn/stornext/d16/cmbco/ola/npipe/freqmaps/npipe6v20_143_map_K.fits')
 p143 = hp.remove_dipole(p143, gal_cut=30)
 
-
-hp.cartview(scale(p143), min=0, max=2, cmap='planck_log', xsize=8000,
-    cbar=False, title='', coord='G', fig=fig)
-
-hp.graticule(coord='E')
 
 #lon0 = 255.8
 #lat0 = -0.91
@@ -55,17 +49,17 @@ hp.graticule(coord='E')
 
 
 projview(scale(p143), coord=["G"], projection_type="sinusoidal", min=0, max=2, 
-    cmap='planck_log', xsize=8000)
+    cmap='planck_log', xsize=8000, cbar=False)
 
 plt.savefig('test_sinusoidal.png', bbox_inches='tight', dpi=300)
 
 projview(scale(p143), coord=["G"], projection_type="polyconic", min=0, max=2, 
-    cmap='planck_log', xsize=8000)
+    cmap='planck_log', xsize=8000, cbar=False)
 
 plt.savefig('test_polyconic.png', bbox_inches='tight', dpi=300)
 
 projview(scale(p143), coord=["G"], projection_type="cassini", min=0, max=2, 
-    cmap='planck_log', xsize=8000)
+    cmap='planck_log', xsize=8000, cbar=False)
 
 plt.savefig('test_cassini.png', bbox_inches='tight', dpi=300)
 plt.show()
