@@ -54,12 +54,18 @@ hp.graticule(coord='E')
 #plt.show()
 
 
-projview(scale(p143), coord=["G"], projection_type="cart", min=0, max=2, 
-    cmap='planck_log', xsize=8000)
-
-
 projview(scale(p143), coord=["G"], projection_type="sinusoidal", min=0, max=2, 
     cmap='planck_log', xsize=8000)
 
-plt.savefig('test.png', bbox_inches='tight', dpi=300)
+plt.savefig('test_sinusoidal.png', bbox_inches='tight', dpi=300)
+
+projview(scale(p143), coord=["G"], projection_type="polyconic", min=0, max=2, 
+    cmap='planck_log', xsize=8000)
+
+plt.savefig('test_polyconic.png', bbox_inches='tight', dpi=300)
+
+projview(scale(p143), coord=["G"], projection_type="cassini", min=0, max=2, 
+    cmap='planck_log', xsize=8000)
+
+plt.savefig('test_cassini.png', bbox_inches='tight', dpi=300)
 plt.show()

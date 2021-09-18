@@ -363,15 +363,50 @@ class PolyconicAxes(GeoAxes):
         def transform_non_affine(self, ll):
             l, phi = ll.T
 
+            l0 = 0
+            phi0 = 0
+
+            ind = (phi != 0)
+            x = np.zeros_like(phi)
+            y = np.zeros_like(phi)
+
+            #x[ind] = np.sin((l[ind]-l0)*np.sin(phi[ind]))/np.tan(phi[ind])
+            #y[ind] = phi[ind] - phi0 + (1-np.cos((l[ind]-l0)*np.sin(phi[ind])))/np.tan(phi[ind])
+
+            #x[~ind] = l[~ind] - l0
+            #y[~ind] = -phi0
 
 
+            n = 12
+            l0s = np.arange(-np.pi, np.pi, 2*np.pi/n) + np.pi/n
+            for i in range(n):
+                l0 = l0s[i]
+                ind = (l >= (l0-np.pi/n)) & (l <= (l0+np.pi/n)) & (phi != 0)
+                x[ind] = np.sin((l[ind]-l0)*np.sin(phi[ind]))/np.tan(phi[ind]) + l0
+                y[ind] = phi[ind] - phi0 + (1-np.cos((l[ind]-l0)*np.sin(phi[ind])))/np.tan(phi[ind])
+                ind = (l >= (l0-np.pi/n)) & (l <= (l0+np.pi/n)) & (phi == 0)
+                x[ind] = l[ind]
+                y[ind] = -phi0
 
-            A = 0.5*l
-            E = 2*np.arctan(A*np.sin(phi))
-            x = np.sin(E)/np.tan(phi)
-            y = phi + (1-np.cos(E))/np.tan(phi)
-            x[phi == 0] = 2*A[phi==0]
-            y[phi == 0] = 0
+            badinds = (x == 0) & (y == 0)
+
+            # Nasty stuff happens at the boundaries
+            inds = (l == -np.pi)
+            x[inds] = -(l[inds] - l0s[0]) + l0s[0]
+            y[inds] = phi[inds]
+
+            inds = (l == np.pi)
+            x[inds] = (l[inds] - l0s[-1]) + l0s[-1]
+            y[inds] = phi[inds]
+
+            inds = (l < -np.pi)
+            x[inds] = -np.pi
+            y[inds] = phi[inds]
+
+            inds = (l > np.pi)
+            x[inds] = np.pi
+            y[inds] = phi[inds]
+
 
             return np.column_stack([x, y])
 
@@ -423,7 +458,48 @@ class PolyconicAxes(GeoAxes):
         transform into an ellipse).  Any data and gridlines will be
         clipped to this shape.
         """
-        return Rectangle((-2, -2), 4, 4)
+        x = []
+        y = []
+
+        phi_l = np.linspace(0, np.pi/2)
+        phi_r = np.linspace(0, np.pi/2)[::-1]
+        phi = np.concatenate((phi_l, phi_r))
+
+        n = 12
+        l0s = np.arange(-np.pi, np.pi, 2*np.pi/n) + np.pi/n
+        for i in range(n):
+            l_l = np.ones_like(phi_l)*(l0s[i]-np.pi/n)
+            l_r = np.ones_like(phi_l)*(l0s[i]+np.pi/n)
+            l = np.concatenate((l_l, l_r))
+            l0 = l0s[i]
+            xi = np.sin((l-l0)*np.sin(phi))/np.tan(phi) + l0
+            yi = phi + (1-np.cos((l-l0)*np.sin(phi)))/np.tan(phi)
+            xi[phi == 0] = l[phi==0]
+            yi[phi == 0] = 0
+            x.append(xi)
+            y.append(yi)
+
+        phi_r = np.linspace(0, -np.pi/2)
+        phi_l = np.linspace(0, -np.pi/2)[::-1]
+        phi = np.concatenate((phi_r, phi_l))
+        for i in range(n):
+            l_l = np.ones_like(phi_l)*(l0s[i]-np.pi/n)
+            l_r = np.ones_like(phi_l)*(l0s[i]+np.pi/n)
+            l = np.concatenate((l_r, l_l))
+            l0 = l0s[i]
+            xi = np.sin((l-l0)*np.sin(phi))/np.tan(phi) + l0
+            yi = phi + (1-np.cos((l-l0)*np.sin(phi)))/np.tan(phi)
+            xi[phi == 0] = l[phi==0]
+            yi[phi == 0] = 0
+            x.append(xi)
+            y.append(yi)
+
+        x = np.array(x).flatten()/(2*np.pi) + 0.5
+        y = np.array(y).flatten()/np.pi + 0.5
+        #x = np.array([0,1,1,0,0])
+        #y = np.array([0,0,1,1,0])
+
+        return Polygon(np.array([x,y]).T)
 
     def _gen_axes_spines(self):
         x = np.array([0,1,1,0,0])
@@ -437,6 +513,178 @@ class PolyconicAxes(GeoAxes):
 
 register_projection(PolyconicAxes)
 
+class CassiniAxes(GeoAxes):
+    name = 'cassini'
+
+    class CassiniTransform(Transform):
+        input_dims = output_dims = 2
+
+        def __init__(self, resolution):
+            Transform.__init__(self)
+            self._resolution = resolution
+
+        def transform_non_affine(self, ll):
+            l, phi = ll.T
+
+            x = np.arcsin(np.cos(phi)*np.sin(l))
+            y = np.arctan2(np.sin(phi), np.cos(phi)*np.cos(l))
+
+            x = np.zeros_like(phi)
+            y = np.zeros_like(phi)
+            n = 12
+            l0s = np.arange(-np.pi, np.pi, 2*np.pi/n) + np.pi/n
+            for i in range(n):
+                l0 = l0s[i]
+                ind = (l >= (l0-np.pi/n)) & (l <= (l0+np.pi/n))
+                phii = phi[ind]
+                li = l[ind]
+                x[ind] = np.arcsin(np.cos(phii)*np.sin(li-l0)) + l0
+                y[ind] = np.arctan2(np.sin(phii), np.cos(phii)*np.cos(li-l0))
+
+            # Nasty stuff happens at the boundaries
+            inds = (l == -np.pi)
+            x[inds] = -(l[inds] - l0s[0]) + l0s[0]
+            y[inds] = phi[inds]
+
+            inds = (l == np.pi)
+            x[inds] = (l[inds] - l0s[-1]) + l0s[-1]
+            y[inds] = phi[inds]
+
+            inds = (l < -np.pi)
+            x[inds] = -np.pi
+            y[inds] = phi[inds]
+
+            inds = (l > np.pi)
+            x[inds] = np.pi
+            y[inds] = phi[inds]
+
+            return np.column_stack([x, y])
+
+        def transform_path_non_affine(self, path):
+            # vertices = path.vertices
+            ipath = path.interpolated(self._resolution)
+            return Path(self.transform(ipath.vertices), ipath.codes)
+
+        def inverted(self):
+            return CassiniAxes.InvertedCassiniTransform(self._resolution)
+
+    class InvertedCassiniTransform(Transform):
+        input_dims = output_dims = 2
+
+        def __init__(self, resolution):
+            Transform.__init__(self)
+            self._resolution = resolution
+
+        def transform_non_affine(self, xy):
+            x, y = xy.T
+
+            phi = np.arcsin(np.sin(y)*np.cos(x))
+            l = np.arctan2(np.tan(x), np.cos(y))
+
+            return np.column_stack([l, phi])
+
+        def inverted(self):
+            return CassiniAxes.CassiniTransform(self._resolution)
+
+    def __init__(self, *args, **kwargs):
+        self._longitude_cap = np.pi / 2.0
+        super().__init__(*args, **kwargs)
+        self.set_aspect(0.5, adjustable='box', anchor='C')
+        self.cla()
+
+    def _get_core_transform(self, resolution):
+        return self.CassiniTransform(resolution)
+
+    def _gen_axes_patch(self):
+        """
+        Override this method to define the shape that is used for the
+        background of the plot.  It should be a subclass of Patch.
+
+        In this case, it is a Circle (that may be warped by the axes
+        transform into an ellipse).  Any data and gridlines will be
+        clipped to this shape.
+        """
+        x = []
+        y = []
+
+        phi_l = np.linspace(0, np.pi/2)
+        phi_r = np.linspace(0, np.pi/2)[::-1]
+        phi = np.concatenate((phi_l, phi_r))
+
+        n = 12
+        l0s = np.arange(-np.pi, np.pi, 2*np.pi/n) + np.pi/n
+        for i in range(n):
+            l_l = np.ones_like(phi_l)*(l0s[i]-np.pi/n)
+            l_r = np.ones_like(phi_l)*(l0s[i]+np.pi/n)
+            l = np.concatenate((l_l, l_r))
+            l0 = l0s[i]
+            x.append(np.arcsin(np.cos(phi)*np.sin(l-l0)) + l0)
+            y.append(np.arctan2(np.sin(phi), np.cos(phi)*np.cos(l-l0)))
+
+        phi_r = np.linspace(0, -np.pi/2)
+        phi_l = np.linspace(0, -np.pi/2)[::-1]
+        phi = np.concatenate((phi_r, phi_l))
+        for i in range(n):
+            l_l = np.ones_like(phi_l)*(l0s[i]-np.pi/n)
+            l_r = np.ones_like(phi_l)*(l0s[i]+np.pi/n)
+            l = np.concatenate((l_r, l_l))
+            l0 = l0s[i]
+            x.append(np.arcsin(np.cos(phi)*np.sin(l-l0)) + l0)
+            y.append(np.arctan2(np.sin(phi), np.cos(phi)*np.cos(l-l0)))
+
+        x = np.array(x).flatten()/(2*np.pi) + 0.5
+        y = np.array(y).flatten()/np.pi + 0.5
+
+        return Polygon(np.array([x,y]).T)
+
+    def _gen_axes_spines(self):
+        #x = []
+        #y = []
+        #n = 12
+        #l0s = np.arange(-np.pi, np.pi, 2*np.pi/n) + np.pi/n
+
+        #phi_l = np.linspace(0, np.pi/2)
+        #phi_r = np.linspace(0, np.pi/2)[::-1]
+        #phi = np.concatenate((phi_l, phi_r))
+
+        #for i in range(n):
+        #    l_l = np.ones_like(phi_l)*(l0s[i]-np.pi/n)
+        #    l_r = np.ones_like(phi_l)*(l0s[i]+np.pi/n)
+        #    l = np.concatenate((l_l, l_r))
+        #    l0 = l0s[i]
+        #    x.append((l-l0)*np.cos(phi) + l0)
+        #    y.append(phi)
+
+        #phi_r = np.linspace(0, -np.pi/2)
+        #phi_l = np.linspace(0, -np.pi/2)[::-1]
+        #phi = np.concatenate((phi_r, phi_l))
+        #l0s = l0s[::-1]
+        #for i in range(n):
+        #    l_l = np.ones_like(phi_l)*(l0s[i]-np.pi/n)
+        #    l_r = np.ones_like(phi_l)*(l0s[i]+np.pi/n)
+        #    l = np.concatenate((l_r, l_l))
+        #    l0 = l0s[i]
+        #    x.append((l-l0)*np.cos(phi) + l0)
+        #    y.append(phi)
+
+        #x = np.array(x).flatten()/(2*np.pi) + 0.5
+        #y = np.array(y).flatten()/np.pi + 0.5
+        #polygon = Polygon(np.array([x,y]).T)
+
+        #path = polygon.get_path()
+        #spine = mspines.Spine(axes=self, spine_type='circle', path=path)
+        #spine.set_transform(self.transAxes)
+        #return {'geo': spine}
+        x = np.array([0,1,1,0,0])
+        y = np.array([0,0,1,1,0])
+        polygon = Polygon(np.array([x,y]).T)
+
+        path = polygon.get_path()
+        spine = mspines.Spine(axes=self, spine_type='circle', path=path)
+        spine.set_transform(self.transAxes)
+        return {'geo': spine}
+
+register_projection(CassiniAxes)
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
