@@ -10,8 +10,7 @@ import matplotlib as mpl
 def scale2(data, linthresh=2e-4):
     m = np.copy(data)
     inds = (data > linthresh)
-    f = 0.648  # from matching planck and planck_log, roughly.
-    f = 164/256
+    f = 256/345
     m = (data/linthresh+1)*f
     m[inds] = 2*f + (1-f)*np.log10(data[inds]/linthresh)/2
     return m/2
@@ -26,8 +25,27 @@ def scale(data, linthresh=2e-4):
     return x
 
 
-cmap = col.ListedColormap(np.loadtxt('planck_cmap_logscale.dat')
-    / 255.0, "planck_log")
+cm1 = np.loadtxt('/mn/stornext/u3/duncanwa/c3pp/src/planck_cmap.dat')
+cm2 = np.loadtxt('planck_cmap_logscale.dat')
+
+cm3 = np.concatenate((cm1, cm2[167:,:]))
+
+inds = np.arange(len(cm1))
+
+x = np.concatenate((inds, inds[167:]*256/167))
+from scipy.interpolate import interp1d
+
+f0 = interp1d(x, cm3[:,0])
+f1 = interp1d(x, cm3[:,1])
+f2 = interp1d(x, cm3[:,2])
+
+inds = np.linspace(0,345, 1000)
+cm4 = np.array([f0(inds), f1(inds), f2(inds)]).T
+
+
+#cmap = col.ListedColormap(np.loadtxt('planck_cmap_logscale.dat')
+#    / 255.0, "planck_log")
+cmap = col.ListedColormap(cm4/255)
 mpl.cm.register_cmap(name='planck_log', cmap=cmap)
 
 cmap = col.ListedColormap(np.loadtxt('/mn/stornext/u3/duncanwa/c3pp/src/planck_cmap.dat')
@@ -44,8 +62,12 @@ import my_projections
 # and the height will be 6.5 inches. dpi of 300 is probably fair.
 
 p143 = hp.read_map('/mn/stornext/d16/cmbco/ola/npipe/freqmaps/npipe6v20_143_map_K.fits')
+
+
 p143 = hp.remove_dipole(p143, gal_cut=30)
 
+projview(scale2(p143), projection_type="mollweide", min=0, max=1, 
+    cmap='planck_log', xsize=800, cbar=True)
 
 #lon0 = 255.8
 #lat0 = -0.91
