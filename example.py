@@ -7,18 +7,33 @@ import healpy as hp
 import matplotlib.colors as col
 import matplotlib as mpl
 
-def scale(data, linthresh=2e-4, logmax=1e3):
+def scale2(data, linthresh=2e-4):
     m = np.copy(data)
     inds = (data > linthresh)
-    m = (data/linthresh+1)/2
-    m[inds] = 1 + 0.5*np.log10(data[inds]/linthresh)
-    return m
+    f = 0.648  # from matching planck and planck_log, roughly.
+    f = 164/256
+    m = (data/linthresh+1)*f
+    m[inds] = 2*f + (1-f)*np.log10(data[inds]/linthresh)/2
+    return m/2
 
+def scale(data, linthresh=2e-4):
+    x = np.copy(data)
+    vmin = -1e3
+    vmax = 1e7
+    x = x*1e6
+    x =  np.log10(0.5*(x + np.sqrt(x**2 + 4)))
+    x = (x + 3)/10.
+    return x
 
 
 cmap = col.ListedColormap(np.loadtxt('planck_cmap_logscale.dat')
     / 255.0, "planck_log")
 mpl.cm.register_cmap(name='planck_log', cmap=cmap)
+
+cmap = col.ListedColormap(np.loadtxt('/mn/stornext/u3/duncanwa/c3pp/src/planck_cmap.dat')
+        / 255.0, "planck")
+mpl.cm.register_cmap(name='planck', cmap=cmap)
+
 
 
 
@@ -47,19 +62,13 @@ p143 = hp.remove_dipole(p143, gal_cut=30)
 
 #plt.show()
 
+projview(scale(p143), projection_type="cassini", min=0, max=1, 
+    cmap='planck_log', xsize=800, cbar=False)
 
-projview(scale(p143), coord=["G"], projection_type="sinusoidal", min=0, max=2, 
-    cmap='planck_log', xsize=8000, cbar=False)
+projview(scale2(p143), projection_type="cassini", min=0, max=1, 
+    cmap='planck_log', xsize=800, cbar=False)
 
-plt.savefig('test_sinusoidal.png', bbox_inches='tight', dpi=300)
+projview(p143, projection_type="cassini", min=-2.5e-4, max=2.5e-4, 
+    cmap='planck', xsize=800, cbar=False)
 
-projview(scale(p143), coord=["G"], projection_type="polyconic", min=0, max=2, 
-    cmap='planck_log', xsize=8000, cbar=False)
-
-plt.savefig('test_polyconic.png', bbox_inches='tight', dpi=300)
-
-projview(scale(p143), coord=["G"], projection_type="cassini", min=0, max=2, 
-    cmap='planck_log', xsize=8000, cbar=False)
-
-plt.savefig('test_cassini.png', bbox_inches='tight', dpi=300)
 plt.show()
