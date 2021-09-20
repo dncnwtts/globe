@@ -26,26 +26,34 @@ def scale(data, linthresh=2e-4):
 
 def plot_objects(text=False):
     objects = {}
-    objects['LMC'] = [279.465165, -31.671889, 5]
+    sm = 2
+    objects['LMC'] = [279.465165, -31.671889, sm]
     objects['Gum Nebula'] = [255.8, -0.91, 15]
-    objects['Coma'] = [58.0791, 87.9577, 5]
-    objects['Cyg A'] = [76.18988, 5.755388, 5]
-    objects['3C 273'] = [289.95, 64.3599, 5]
-    objects['3C 279'] = [305.104, 57.062, 5]
-    objects['3C 345'] = [63.455, 40.9488, 5]
-    objects['3C 84'] = [150.5758, -13.26, 5]
-    objects['Carina Nebula'] = [287.60, -00.64452, 5]
-    objects['Cas A'] = [111.73, -0.2129, 5]
-    objects['Cen A'] = [309.516, 19.4, 5]
-    objects['Cyg A'] = [76, 5.755, 5]
-    objects['Fornax A'] = [240.162, -56.69, 5]
-    objects['Crab Nebula'] = [184.55746, -0.578436, 5]
+    objects['Coma'] = [58.0791, 87.9577, sm]
+    objects['Cyg A'] = [76.18988, 5.755388, sm]
+    objects['3C 273'] = [289.95, 64.3599, sm]
+    objects['3C 279'] = [305.104, 57.062, sm]
+    objects['3C 345'] = [63.455, 40.9488, sm]
+    objects['3C 84'] = [150.5758, -13.26, sm]
+    objects['Carina Nebula'] = [287.60, -00.64452, sm]
+    objects['Cas A'] = [111.73, -0.2129, sm]
+    objects['Cen A'] = [309.516, 19.4, sm]
+    objects['Cyg A'] = [76, 5.755, sm]
+    objects['Fornax A'] = [240.162, -56.69, sm]
+    objects['Crab Nebula'] = [184.55746, -5.78436, sm]
+    objects['W3'] = [133.94761, 0.106505, sm]
+    objects['Virgo A'] = [283.7778, 74.49115, sm]
+    objects['Rosette'] = [206.49814, -2.02319, sm]
+    objects['NGC 1499'] = [160.6032, -12.0513, sm]
+    objects['IC 348'] = [160.4899, -17.8022, sm]
+    objects[r'$\rho$ Oph'] = [353.68597, 17.68675, sm]
+    objects['OV-236'] = [9.344, -19.607, sm]
 
-    theta = np.linspace(0,2*np.pi)
 
     for obj in objects:
         lon0, lat0, rad = objects[obj]
 
+        theta = np.linspace(0,2*np.pi, 20*rad)
 
         lon = rad*np.cos(theta) + lon0
         lat = rad*np.sin(theta) + lat0
@@ -154,19 +162,19 @@ p143 = hp.remove_dipole(p143, gal_cut=30)
 
 #plt.show()
 
-projview(scale(p143), projection_type="cassini", min=0, max=1, 
-    cmap='planck_log', xsize=800, cbar=False)
-
-projview(scale2(p143), projection_type="cassini", min=0, max=1, 
-    cmap='planck_log', xsize=800, cbar=False)
-
+#projview(scale(p143), projection_type="cassini", min=0, max=1, 
+#    cmap='planck_log', xsize=800, cbar=False)
+#
+#projview(scale2(p143), projection_type="cassini", min=0, max=1, 
+#    cmap='planck_log', xsize=800, cbar=False)
+#
 projview(p143, projection_type="cassini", min=-2.5e-4, max=2.5e-4, 
-    cmap='planck', xsize=800, cbar=False)
+    cmap='planck', xsize=8000, cbar=False)
 
 plot_objects(text=False)
 
 projview(scale2(p143), projection_type="mollweide", min=0, max=1, 
-    cmap='planck_log', xsize=800, cbar=True, graticule=True,
+    cmap='planck_log', xsize=8000, cbar=True, graticule=True,
     longitude_grid_spacing=30, latitude_grid_spacing=20, graticule_color='k')
 
 plot_objects(text=True)
