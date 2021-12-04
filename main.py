@@ -6,11 +6,22 @@ import healpy as hp
 
 import matplotlib.colors as col
 import matplotlib as mpl
+from scipy.interpolate import interp1d
+import my_projections
 
-xsize = 8000*2
-dpi = 600
+# xsize sets the number of pixels in the horizontal direction that healpix
+# pixels must be interpolated into. xsize of 128000 requires roughly 60 GB of
+# memory.
+xsize = 128000
+xsize = 800
+dpi = 300
 
 def scale2(data, linthresh=2.5e-4):
+    '''
+    takes data in microKelvin, so that it is linear between -linthresh and
+    linthresh, and logarithmic above. The data is then scaled to be between
+    [-1,1], so it only works with the colorbar as defined below.
+    '''
     m = np.copy(data)
     inds = (data > linthresh)
     f = 256/345
@@ -113,30 +124,27 @@ cm2 = np.loadtxt('planck_cmap_logscale.dat')
 
 cm3 = np.concatenate((cm1, cm2[167:,:]))
 
-# Need to smooth the r jump a bit
-
-r0 = cm3[255, 0]
-r1 = cm3[268, 0]
-m = (r1-r0)/(268-255)
-
-
-
 inds = np.arange(len(cm1))
 
 x = np.concatenate((inds, inds[167:]*256/167))
-from scipy.interpolate import interp1d
 
-f0 = interp1d(x, cm3[:,0])
-f1 = interp1d(x, cm3[:,1])
-f2 = interp1d(x, cm3[:,2])
 
 inds = np.linspace(0,345, 1000)
-cm3[255:269,0] = m*(inds[255:269] - inds[255]) + cm3[255,0]
+l = 30
+m = 13
+slope = -3.5792
+cm3p = np.copy(cm3)
+slope = (cm3[269,0] - cm3[255,0])/(269-255)
+cm3p[255:255+m,0] = 2.5*slope * (inds[255:255+m] - inds[255]) + cm3[255,0]
+
+f0 = interp1d(x, cm3p[:,0])
+f1 = interp1d(x, cm3p[:,1])
+f2 = interp1d(x, cm3p[:,2])
+
 cm4 = np.array([f0(inds), f1(inds), f2(inds)]).T
 
 
 cmap = col.ListedColormap(cm4/255)
-#cmap = col.ListedColormap(cm2/255)
 mpl.cm.register_cmap(name='planck_log', cmap=cmap)
 
 cmap = col.ListedColormap(np.loadtxt('/mn/stornext/u3/duncanwa/c3pp/src/planck_cmap.dat')
@@ -146,53 +154,20 @@ mpl.cm.register_cmap(name='planck', cmap=cmap)
 
 
 
-import my_projections
-
 
 # The globe will be 13 inches in diameter, so roughly that will be the width,
 # and the height will be 6.5 inches. dpi of 300 is probably fair.
+width = 13*np.pi
+width = 8
 
-#p143 = hp.read_map('/mn/stornext/d16/cmbco/ola/npipe/freqmaps/npipe6v20_217_map_K.fits')
-p143 = hp.read_map('/mn/stornext/d16/cmbco/bp/delivery/v8.00/BP_release_files/BP_070_IQU_n1024_v1.fits')
-#p143 = hp.read_map('/mn/stornext/d16/cmbco/bp/delivery/v8.00/BP_release_files/BP_044_IQU_n0512_v1.fits')
-p143 *= 1e-6
+m_70 = hp.read_map('/mn/stornext/d16/cmbco/bp/delivery/v10.00/BP10/BP_070_IQU_n1024_BP10.fits')
+m_70 *= 1e-6
 
-
-p143 = hp.remove_dipole(p143, gal_cut=30)
-
-
-#lon0 = 255.8
-#lat0 = -0.91
-#theta = np.linspace(0,2*np.pi)
-#lon = 15*np.cos(theta) + lon0
-#lat = 15*np.sin(theta) + lat0
-#hp.projplot(lon, lat, lonlat=True)
-#hp.projtext(lon0, lat0, 'Gum Nebula', lonlat=True, horizontalalignment='center',
-#    direct=True)
-
-#hp.projtext(58.0791, 87.9577, 'Coma Cluster', lonlat=True,
-#    horizontalalignment='left', direct=False)
+m_70 = hp.remove_dipole(m_70, gal_cut=30)
 
 
-#plt.show()
+projview(scale2(m_70), projection_type="cassini", min=0, max=1, 
+    cmap='planck_log', xsize=xsize, cbar=False, width=width)
 
-#projview(scale(p143), projection_type="cassini", min=0, max=1, 
-#    cmap='planck_log', xsize=800, cbar=False)
-#
-projview(scale2(p143), projection_type="cassini", min=0, max=1, 
-    cmap='planck_log', xsize=xsize, cbar=False)
-
-plt.savefig(f'cassini_dpi{dpi}.pdf', dpi=dpi)
-projview(p143, projection_type="cassini", min=-2.5e-4, max=2.5e-4, 
-    cmap='planck', xsize=xsize, cbar=False)
-
-plt.show()
-#plot_objects(text=False)
-
-plt.close('all')
-
-#projview(p143, projection_type="mollweide", min=-2.5e-4, max=2.5e-4,
-#    cmap='planck', xsize=xsize, cbar=False, graticule=False)
-#
-#plt.savefig('mollweide.png', bbox_inches='tight', dpi=dpi)
-#plt.show()
+plt.savefig(f'planck70_globe.pdf', dpi=dpi, bbox_inches='tight')
+plt.savefig(f'planck70_globe.png', dpi=dpi, bbox_inches='tight')

@@ -638,45 +638,8 @@ class CassiniAxes(GeoAxes):
         return Polygon(np.array([x,y]).T)
 
     def _gen_axes_spines(self):
-        #x = []
-        #y = []
-        #n = 12
-        #l0s = np.arange(-np.pi, np.pi, 2*np.pi/n) + np.pi/n
-
-        #phi_l = np.linspace(0, np.pi/2)
-        #phi_r = np.linspace(0, np.pi/2)[::-1]
-        #phi = np.concatenate((phi_l, phi_r))
-
-        #for i in range(n):
-        #    l_l = np.ones_like(phi_l)*(l0s[i]-np.pi/n)
-        #    l_r = np.ones_like(phi_l)*(l0s[i]+np.pi/n)
-        #    l = np.concatenate((l_l, l_r))
-        #    l0 = l0s[i]
-        #    x.append((l-l0)*np.cos(phi) + l0)
-        #    y.append(phi)
-
-        #phi_r = np.linspace(0, -np.pi/2)
-        #phi_l = np.linspace(0, -np.pi/2)[::-1]
-        #phi = np.concatenate((phi_r, phi_l))
-        #l0s = l0s[::-1]
-        #for i in range(n):
-        #    l_l = np.ones_like(phi_l)*(l0s[i]-np.pi/n)
-        #    l_r = np.ones_like(phi_l)*(l0s[i]+np.pi/n)
-        #    l = np.concatenate((l_r, l_l))
-        #    l0 = l0s[i]
-        #    x.append((l-l0)*np.cos(phi) + l0)
-        #    y.append(phi)
-
-        #x = np.array(x).flatten()/(2*np.pi) + 0.5
-        #y = np.array(y).flatten()/np.pi + 0.5
-        #polygon = Polygon(np.array([x,y]).T)
-
-        #path = polygon.get_path()
-        #spine = mspines.Spine(axes=self, spine_type='circle', path=path)
-        #spine.set_transform(self.transAxes)
-        #return {'geo': spine}
-        x = np.array([-0.1,1.1,1.1,-0.1,-0.1])
-        y = np.array([-0.1,-0.1,1.1,1.1,-0.1])
+        x = np.array([-0.01,  1.01, 1.01, -0.01, -0.01])
+        y = np.array([-0.01, -0.01, 1.01,  1.01, -0.01])
         polygon = Polygon(np.array([x,y]).T)
 
         path = polygon.get_path()
@@ -702,28 +665,13 @@ if __name__ == '__main__':
     m2 = np.arange(12)
 
     ms = [m1, m2]
-    ms = [m1]
 
 
     for i, m in enumerate(ms):
-        #projview(m, projection_type='mollweide', graticule=True,
-            #graticule_labels=True)
-        #projview(m, projection_type='hammer', graticule=True, graticule_labels=True)
-        #projview(m, projection_type='custom_hammer', graticule=True, graticule_labels=True)
-        #projview(m, projection_type='healpix', graticule=True, graticule_labels=True)
-        #projview(m, projection_type='equirectangular', graticule=False,
-        #    graticule_labels=False, cbar=False)
-        #projview(m, projection_type='polyconic', graticule=True,
-        #    graticule_labels=False, cbar=False)
+        #projview(m, projection_type='healpix')
+        projview(m, projection_type='polyconic', graticule=True,
+            graticule_labels=False, cbar=False)
         projview(m, projection_type='sinusoidal', graticule=False,
             graticule_labels=False, cbar=False)
-        projview(m, projection_type='custom_hammer', graticule=True,
-            graticule_labels=False, cbar=False)
-        #projview(m, projection_type='mollweide', graticule=True,
-        #    graticule_labels=False, cbar=False)
-        #projview(m, projection_type='cart', graticule=False,
-        #    graticule_labels=False, cbar=False)
-        # For some reason, using plt.savefig really messes with the healpix
-        # projection
         plt.show()
 
